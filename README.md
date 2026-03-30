@@ -1,36 +1,149 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🚀 DevResume
 
-## Getting Started
+> Generate ATS-friendly resumes from your DevJournal projects.
 
-First, run the development server:
+DevResume transforms your development work into structured, professional resume content — automatically.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+---
+
+## ✨ Features
+
+* 🔐 Connect with DevJournal using token
+* 📦 Fetch projects with logs + issues
+* 🧠 Intelligent bullet generation system
+* ✍️ Fully editable resume content
+* 📄 Clean A4 resume layout
+* 📥 Export as PDF with proper pagination
+* 💾 Local persistence (user profile + token)
+
+---
+
+## 🧠 How It Works
+
+```text
+DevJournal Data
+ → Fetch Projects
+ → Extract Logs & Issues
+ → Transform into Resume Bullets
+ → Rank & Clean Content
+ → Generate Sections
+ → Edit
+ → Export PDF
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🏗️ Architecture
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+app/
+  page.tsx                → Orchestrator
 
-## Learn More
+components/
+  SetUpPanel.tsx          → Input UI (profile + projects)
+  ResumeEditor.tsx        → Editable content
+  ResumeView.tsx          → A4 + PDF view
+  ProjectSelector.tsx
+  UserProfileForm.tsx
 
-To learn more about Next.js, take a look at the following resources:
+hooks/
+  useProjects.ts          → Fetch + selection logic
+  useResume.ts            → Generation + sections
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+services/
+  devjournal.ts           → API layer
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+lib/resume/
+  generateProjectResume.ts
+  generateBullets.ts
+  generateFeatures.ts
+  generateSummary.ts
+  transformLogs.ts
+  filterLogs.ts
+  extractLogs.ts
+  processIssues.ts
+  rankBullets.ts
+```
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## ⚙️ Tech Stack
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+* **Frontend:** Next.js, React, Tailwind CSS
+* **Backend (DevJournal):** FastAPI
+* **PDF:** html2pdf.js
+
+---
+
+## 📸 Screenshots
+
+> (Add screenshots here later)
+
+---
+
+## 🚀 Getting Started
+
+```bash
+git clone https://github.com/YOUR_USERNAME/devresume.git
+cd devresume
+npm install
+npm run dev
+```
+
+---
+
+## 🔑 Usage
+
+1. Enter your DevJournal token
+2. Fetch your projects
+3. Select projects
+4. Generate resume
+5. Edit content
+6. Export PDF
+
+---
+
+## 🧩 Roadmap
+
+### ✅ Phase 1 (Completed)
+
+* Resume generation
+* Editor
+* PDF export
+* Basic refactor
+
+### 🔜 Phase 2
+
+* Save user profile
+* Save generated resumes
+* Load saved resumes
+
+### 🔜 Phase 3
+
+* Deep DevJournal integration (logs + issues improvements)
+
+### 🔜 Phase 4
+
+* AI bullet enhancement
+
+### 🔜 Phase 5
+
+* ATS analyzer
+
+### 🔜 Phase 6
+
+* UI redesign
+
+---
+
+## 💡 Vision
+
+DevResume aims to become:
+
+> “The fastest way to turn real development work into job-ready resumes.”
+
+---
+
+## 👤 Author
+
+Built by you 🚀
