@@ -7,20 +7,25 @@ export const saveResume = async (data: any) => {
             "Content-Type": "application/json",
         },
         body: JSON.stringify({
-            user_id: null, // future
+            user_email: data.userEmail,
             title: data.title,
             user_data: data.user,
             sections: data.sections,
         }),
     });
 
+    console.log("Sending payload:", {
+        user_email: data.userEmail,
+    });
+
     if (!res.ok) throw new Error("Failed to save resume");
+
 
     return res.json();
 };
 
-export const getResumes = async () => {
-    const res = await fetch(`${BASE_URL}/resumes`);
+export const getResumesByUser = async (email: string) => {
+    const res = await fetch(`${BASE_URL}/resumes/user/${email}`);
 
     if (!res.ok) throw new Error("Failed to fetch resumes");
 

@@ -73,7 +73,7 @@ export default function ResumeView({
                                                     <h2 className="text-sm font-semibold tracking-[0.15em] uppercase text-gray-800">
                                                         EDUCATION
                                                     </h2>
-                                                    <div className="ml-1">
+                                                    <div>
                                                         <p className="font-medium">{section.data?.degree}</p>
                                                         <p>{section.data?.college}</p>
                                                         <p className="text-sm text-gray-600">
@@ -99,7 +99,7 @@ export default function ResumeView({
                                                     </h2>
 
                                                     {section.data.map((r: any, i: number) => (
-                                                        <div key={i} className="ml-1 space-y-1.5 break-inside-avoid">
+                                                        <div key={i} className="space-y-1.5 break-inside-avoid">
 
                                                             {/* PROJECT TITLE */}
                                                             <h3 className="text-[16px] font-medium text-gray-900">
@@ -151,7 +151,7 @@ export default function ResumeView({
                                                 </h2>
 
                                                 {section.data?.languages && (
-                                                    <p className="ml-1">
+                                                    <p>
                                                         <span className="font-medium">Languages:</span>{" "}
                                                         {section.data.languages
                                                             ?.split(",")
@@ -163,7 +163,7 @@ export default function ResumeView({
                                                 )}
 
                                                 {section.data?.frameworks && (
-                                                    <p className="ml-1">
+                                                    <p>
                                                         <span className="font-medium">Frameworks:</span>{" "}
                                                         {section.data.frameworks
                                                             ?.split(",")
@@ -175,7 +175,7 @@ export default function ResumeView({
                                                 )}
 
                                                 {section.data?.tools && (
-                                                    <p className="ml-1">
+                                                    <p>
                                                         <span className="font-medium">Tools:</span>{" "}
                                                         {section.data.tools
                                                             ?.split(",")

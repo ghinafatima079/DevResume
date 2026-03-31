@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 
 import { getSession, saveSession } from "@/services/session";
 
+import { getUserByEmail, upsertUser } from "@/services/user";
+
 import SetUpPanel from "@/components/SetUpPanel";
 import ResumeEditor from "@/components/ResumeEditor";
 import ResumeView from "@/components/ResumeView";
@@ -16,13 +18,13 @@ import { useResume } from "@/hooks/useResume";
 
 import { UserProfile } from "@/components/userProfileForm";
 
-import { deleteResume } from "@/services/resume";
-
 export default function Home() {
 
   // =========================
   // 1. STATE
   // =========================
+
+  const [isUserLoaded, setIsUserLoaded] = useState(false);
 
   const [token, setToken] = useState("");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -73,11 +75,17 @@ export default function Home() {
     handleGenerate,
   } = useResume(projects, selectedProjects, user, setResumeTitle);
 
+  const resetResumeState = () => {
+    setEditableResumes([]);
+    setSections([]);
+    setMode("edit");
+  };
+
   // =========================
   // 3. EFFECTS
   // =========================
 
-  // 🔹 3.1 Restore session
+  // 3.2 Auto-load user on email input
   useEffect(() => {
     const session = getSession();
 
@@ -90,7 +98,7 @@ export default function Home() {
     }
   }, []);
 
-  // 🔹 3.2 Auto-fetch projects
+  // 3.3 Auto-fetch projects
   useEffect(() => {
     let hasFetched = false;
 
@@ -110,19 +118,14 @@ export default function Home() {
     autoFetch();
   }, [token]);
 
-  // 🔹 3.3 Save session (token + user)
+  // 3.4 Save session (token + user)
   useEffect(() => {
     if (token && user.email) {
       saveSession(token, user);
     }
   }, [token, user]);
 
-  // 🔹 3.4 Save user independently
-  useEffect(() => {
-    localStorage.setItem("devresume_user", JSON.stringify(user));
-  }, [user]);
-
-  // 🔹 3.5 Mounted flag
+  // 3.5 Mounted flag
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -130,6 +133,45 @@ export default function Home() {
   // =========================
   // 4. HANDLERS (optional cleanup)
   // =========================
+
+  const handleUserLogin = async () => {
+    if (!user.email || user.email.trim().length < 5) return;
+
+    try {
+      const email = user.email;
+
+      const existingUser = await getUserByEmail(email);
+      console.log("Fetched user:", existingUser);
+
+      if (existingUser && existingUser.email) {
+        setUser(existingUser);
+      } else {
+        const newUser = await upsertUser({ email });
+        setUser({
+          name: "",
+          email,
+          github: "",
+          linkedin: "",
+          mobile: "",
+          education: {
+            college: "",
+            degree: "",
+            year: "",
+          },
+          skills: {
+            languages: "",
+            frameworks: "",
+            tools: "",
+          },
+          ...newUser, // optional merge if backend returns more
+        });
+      }
+
+      setIsUserLoaded(true);
+    } catch (err) {
+      console.log("User login failed", err);
+    }
+  };
 
   const handleFetchProjects = async () => {
     try {
@@ -144,96 +186,122 @@ export default function Home() {
       {mode === "edit" && (
 
         <div className="px-8 py-6 w-full max-w-7xl mx-auto">
-          <div className="grid grid-cols-3 gap-16">
+          <div className="grid grid-cols-3 gap-16 h-[calc(100vh-80px)]">
 
-            <SetUpPanel
-              user={user}
-              setUser={setUser}
-              token={token}
-              setToken={setToken}
-              fetchProjects={handleFetchProjects}
-              isAuthenticated={isAuthenticated}
-              setIsAuthenticated={setIsAuthenticated}
-              error={error}
-              loadingProjects={loadingProjects}
-              projects={projects}
-              selectedProjects={selectedProjects}
-              toggleProject={toggleProject}
-              handleGenerate={handleGenerate}
-              mounted={mounted}
-            />
+            <div id="leftPanel" className="col-span-1 overflow-y-auto pr-2">
+              <SetUpPanel
+                user={user}
+                setUser={setUser}
+                token={token}
+                setToken={setToken}
+                fetchProjects={handleFetchProjects}
+                isAuthenticated={isAuthenticated}
+                setIsAuthenticated={setIsAuthenticated}
+                isUserLoaded={isUserLoaded}
+                setIsUserLoaded={setIsUserLoaded}
+                handleUserLogin={handleUserLogin}
+                onResetResume={resetResumeState}
+                error={error}
+                loadingProjects={loadingProjects}
+                projects={projects}
+                selectedProjects={selectedProjects}
+                toggleProject={toggleProject}
+                handleGenerate={handleGenerate}
+                mounted={mounted}
+              />
+            </div>
 
-            <div className="col-span-2">
+            <div id="rightPanel" className="col-span-2 overflow-y-auto">
 
-              {!hasGenerated && !isGenerating && (
-                <div className="h-full flex items-center justify-center text-sm text-[#7D8590]">
-                  Your resume will appear here →
-                </div>
-              )}
+              <div className="col-span-2">
 
-              {isGenerating && (
-                <div className="h-full flex items-center justify-center text-sm text-[#7D8590]">
-                  Generating resume...
-                </div>
-              )}
+                {!hasGenerated && !isGenerating && (
+                  <div className="h-full flex items-center justify-center text-sm text-[#7D8590]">
+                    Your resume will appear here →
+                  </div>
+                )}
 
-              {hasGenerated && !isGenerating && (
-                <div className="space-y-6">
+                {isGenerating && (
+                  <div className="h-full flex items-center justify-center text-sm text-[#7D8590]">
+                    Generating resume...
+                  </div>
+                )}
 
-                  <ResumeEditor
-                    resumes={editableResumes}
-                    setResumes={setEditableResumes}
-                  />
+                {hasGenerated && !isGenerating && (
+                  <div className="space-y-6">
 
-                  <div className="flex gap-3">
-
-                    <input
-                      className="text-sm border border-[#30363D] px-2 py-1 bg-transparent"
-                      placeholder="Resume title (e.g. Backend Resume)"
-                      value={resumeTitle}
-                      onChange={(e) => setResumeTitle(e.target.value)}
+                    <ResumeEditor
+                      resumes={editableResumes}
+                      setResumes={setEditableResumes}
                     />
 
-                    <button
-                      className="text-sm px-3 py-1 border border-[#30363D] hover:bg-[#161B22]"
-                      onClick={async () => {
-                        try {
-                          console.log("Saving:", { user, sections });
+                    <div className="flex gap-3">
 
-                          const res = await saveResume({ user, sections, title: resumeTitle || user.name, });
+                      <input
+                        className="text-sm border border-[#30363D] px-2 py-1 bg-transparent"
+                        placeholder="Resume title (e.g. Backend Resume)"
+                        value={resumeTitle}
+                        onChange={(e) => setResumeTitle(e.target.value)}
+                      />
 
-                          console.log("Saved response:", res);
+                      <button
+                        disabled={!user?.email}
+                        className="text-sm px-3 py-1 border border-[#30363D] hover:bg-[#161B22]"
+                        onClick={async () => {
+                          try {
+                            console.log("Saving:", { user, sections });
 
-                          alert("Resume saved!");
-                        } catch (err) {
-                          console.error(err);
-                          alert("Failed to save resume");
-                        }
-                      }}
-                    >
-                      Save Resume →
-                    </button>
+                            if (!user?.email) {
+                              alert("User email missing");
+                              return;
+                            }
 
-                    <button
-                      className="text-sm px-3 py-1 border border-[#30363D] hover:bg-[#161B22]"
-                      onClick={() => setMode("load")}
-                    >
-                      Load →
-                    </button>
+                            await saveResume({
+                              userEmail: user.email,
+                              user,
+                              sections,
+                              title: resumeTitle || user.name,
+                            });
 
-                    <button
-                      className="text-sm px-3 py-1 border border-[#30363D] hover:bg-[#161B22]"
-                      onClick={() => setMode("view")}
-                    >
-                      View Resume →
-                    </button>
+                            console.log("Saving resume with:", {
+                              userEmail: user.email,
+                              user,
+                              sections,
+                            });
+
+                            alert("Resume saved!");
+                          } catch (err) {
+                            console.error(err);
+                            alert("Failed to save resume");
+                          }
+                        }}
+                      >
+                        Save Resume →
+                      </button>
+
+                      <button
+                        className="text-sm px-3 py-1 border border-[#30363D] hover:bg-[#161B22]"
+                        onClick={() => setMode("load")}
+                      >
+                        Load →
+                      </button>
+
+                      <button
+                        className="text-sm px-3 py-1 border border-[#30363D] hover:bg-[#161B22]"
+                        onClick={() => setMode("view")}
+                      >
+                        View Resume →
+                      </button>
+
+                    </div>
 
                   </div>
 
-                </div>
-              )}
+                )}
 
+              </div>
             </div>
+
 
           </div>
         </div>
@@ -251,6 +319,7 @@ export default function Home() {
           </button>
 
           <SavedResumesPanel
+            user={user}
             setSections={setSections}
             setEditableResumes={setEditableResumes}
             setResumeTitle={setResumeTitle}

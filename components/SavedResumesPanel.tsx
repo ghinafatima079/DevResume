@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { getResumes } from "@/services/resume";
+import { getResumesByUser } from "@/services/resume";
 import { deleteResume } from "@/services/resume";
 import { updateResumeTitle } from "@/services/resume";
 
 export default function SavedResumesPanel({
+    user,
     setSections,
     setEditableResumes,
     setResumeTitle,
@@ -16,9 +17,11 @@ export default function SavedResumesPanel({
     const [tempTitle, setTempTitle] = useState("");
 
     useEffect(() => {
+        if (!user?.email) return;
+
         const load = async () => {
             try {
-                const data = await getResumes();
+                const data = await getResumesByUser(user.email);
                 console.log("Loaded resumes:", data);
                 setSavedResumes(data);
             } catch {
@@ -27,7 +30,7 @@ export default function SavedResumesPanel({
         };
 
         load();
-    }, []);
+    }, [user.email]);
 
     return (
         <div className="w-full space-y-6">
