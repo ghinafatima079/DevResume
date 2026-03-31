@@ -22,8 +22,6 @@ export function generateBullets(project: Project): string[] {
         ...transformedLogs.map(text => ({ text, source: "log" as const }))
     ];
 
-    console.log("COMBINED:", bullets);
-
     // remove duplicates BEFORE ranking
     const seen = new Set<string>();
 
@@ -33,15 +31,9 @@ export function generateBullets(project: Project): string[] {
         return true;
     });
 
-    console.log("UNIQUE:", unique);
-
     // rank
     const ranked = rankBullets(unique);
 
-    console.log("RANKED:", ranked);
-
-    // limit
-    console.log("FINAL (TOP 4):", ranked.slice(0, 4));
-    return ranked.slice(0, 4);
+    return unique.map(b => b.text);
 
 }

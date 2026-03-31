@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { fetchProjectsAPI, fetchProjectDetails } from "@/services/devjournal";
 
+import { saveSession } from "@/services/session";
+
 export function useProjects(token: string) {
     const [projects, setProjects] = useState<any[]>([]);
     const [loadingProjects, setLoadingProjects] = useState(false);
@@ -40,6 +42,7 @@ export function useProjects(token: string) {
             setProjects(enriched);
         } catch (err: any) {
             setError(err.message || "Something went wrong.");
+            throw err;
         } finally {
             setLoadingProjects(false);
         }

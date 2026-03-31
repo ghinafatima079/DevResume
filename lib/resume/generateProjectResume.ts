@@ -2,6 +2,8 @@ import { generateSummary } from "./generateSummary";
 import { generateBullets } from "./generateBullets";
 import { generateFeatureBullets } from "./generateFeatures";
 
+import { rankBullets, type Bullet } from "./rankBullets";
+
 export type Project = {
     name: string;
     description?: string | null;
@@ -19,59 +21,76 @@ export type ResumeProject = {
 
 function cleanBullet(text: string): string {
     return text
-        .replace(/\.$/, "")           // remove trailing dot
-        .replace(/\s+/g, " ")         // normalize spaces
-        .replace(/\b(the|a|an)\b/gi, "") // remove filler words
+        .replace(/\.$/, "")
+        .replace(/\s+/g, " ")
+        .replace(/\b(the|a|an)\b/gi, "")
         .trim();
 }
 
-function dedupeBullets(bullets: string[]): string[] {
-    const seen = new Set<string>();
+function dedupeBullets(bullets: Bullet[]): Bullet[] {
+    const seen: string[] = [];
 
     return bullets.filter((b) => {
-        const key = b.toLowerCase();
+        const key = b.text.toLowerCase();
 
         for (const existing of seen) {
-            // remove similar bullets (not just exact)
             if (existing.includes(key) || key.includes(existing)) {
                 return false;
             }
         }
 
-        seen.add(key);
+        seen.push(key);
         return true;
     });
 }
 
 export function generateProjectResume(project: Project): ResumeProject {
 
-    if ((!project.logs || project.logs.length === 0) &&
-        (!project.issues || project.issues.length === 0)) {
+    if (
+        (!project.logs || project.logs.length === 0) &&
+        (!project.issues || project.issues.length === 0)
+    ) {
         return {
-            ...project,
-            bullets: ["Not enough data to generate strong resume points."],
+            name: project.name,
             summary: project.description || "",
+            techStack: project.techStack,
+            bullets: ["Not enough data to generate strong resume points."]
         };
     }
 
     const summary = generateSummary(project);
 
+    // raw strings
     const features = generateFeatureBullets(project);
     const technical = generateBullets(project);
 
-    // combine first then clean to preserve source info for ranking
-    let allBullets = [...features, ...technical].map(cleanBullet);
+    // structure bullets
+    const featureBullets: Bullet[] = features.map(b => ({
+        text: cleanBullet(b),
+        source: "log"
+    }));
 
-    // remove duplicates
+    const technicalBullets: Bullet[] = technical.map(b => ({
+        text: cleanBullet(b),
+        source: "issue"
+    }));
+
+    // combine
+    let allBullets: Bullet[] = [...featureBullets, ...technicalBullets];
+
+    // dedupe (structure preserved)
     allBullets = dedupeBullets(allBullets);
 
-    // limit AFTER combining
-    allBullets = allBullets.slice(0, 4);
+    // rank (single source of truth)
+    const ranked = rankBullets(allBullets);
+
+    // take top 4 + convert to string[]
+    const topBullets = ranked.slice(0, 4).map(b => b.text);
 
     return {
         name: project.name,
         summary,
         techStack: project.techStack,
-        bullets: allBullets
+        bullets: topBullets
     };
 }
